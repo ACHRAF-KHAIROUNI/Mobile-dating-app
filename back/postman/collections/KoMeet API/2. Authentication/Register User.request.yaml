@@ -1,0 +1,32 @@
+$kind: http-request
+url: "{{baseUrl}}/api/v1/auth/register"
+method: POST
+headers:
+  Content-Type: application/json
+body:
+  type: text
+  content: |-
+    {
+      "email": "{{testEmail}}",
+      "password": "{{testPassword}}",
+      "displayName": "Etudiant KoMeet"
+    }
+auth:
+  type: noauth
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('Status code is 201 or 409 if already registered', function () {
+          pm.expect(pm.response.code).to.be.oneOf([201, 409]);
+          if (pm.response.code === 201) {
+              var json = pm.response.json();
+              pm.expect(json.accessToken).to.be.a('string');
+              // Sauvegarde du jeton de session JWT
+              pm.environment.set('accessToken', json.accessToken);
+              pm.collectionVariables.set('accessToken', json.accessToken);
+              pm.environment.set('createdUserId', json.user.id);
+              pm.collectionVariables.set('createdUserId', json.user.id);
+          }
+      });
+    language: text/javascript
+order: 1000

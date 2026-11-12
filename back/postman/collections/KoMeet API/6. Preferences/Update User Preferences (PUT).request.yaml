@@ -1,0 +1,27 @@
+$kind: http-request
+url: "{{baseUrl}}/api/v1/preferences"
+method: PUT
+headers:
+  Content-Type: application/json
+body:
+  type: text
+  content: |-
+    {
+      "minAge": 22,
+      "maxAge": 38,
+      "country": "France"
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('Status code is 200', function () {
+          pm.response.to.have.status(200);
+      });
+      pm.test('Preferences updated', function () {
+          var json = pm.response.json();
+          pm.expect(json.minAge).to.eql(22);
+          pm.expect(json.maxAge).to.eql(38);
+          pm.expect(json.country).to.eql('France');
+      });
+    language: text/javascript
+order: 2000

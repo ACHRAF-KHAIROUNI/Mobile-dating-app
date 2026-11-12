@@ -1,0 +1,846 @@
+openapi: 3.1.0
+info:
+  title: KoMeet API
+  version: 1.0.0
+  description: >
+    API REST pédagogique pour le projet KoMeet (Android / Kotlin).
+    Fournit l'authentification JWT, la découverte et recherche de profils issus de
+    Random User Generator, la gestion des favoris par utilisateur et les préférences personnelles.
+servers:
+  - url: http://localhost:8080
+    description: Serveur de développement local
+  - url: http://10.0.2.2:8080
+    description: Accès depuis un émulateur Android standard (hôte local)
+
+paths:
+  /health:
+    get:
+      summary: État de santé du service
+      description: Vérifie que le serveur et la base de données SQLite sont opérationnels.
+      operationId: getHealth
+      tags:
+        - Health
+      responses:
+        '200':
+          description: Service opérationnel
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthResponse'
+
+  /api/v1/health:
+    get:
+      summary: État de santé du service (versionné)
+      description: Alias versionné du point d'entrée de santé.
+      operationId: getHealthV1
+      tags:
+        - Health
+      responses:
+        '200':
+          description: Service opérationnel
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthResponse'
+
+  /api/v1/auth/register:
+    post:
+      summary: Inscription d'un nouvel utilisateur
+      description: Crée un compte utilisateur avec normalisation d'e-mail et hachage BCrypt du mot de passe.
+      operationId: register
+      tags:
+        - Authentication
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterRequest'
+      responses:
+        '201':
+          description: Compte créé avec succès, jeton d'accès retourné
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        '400':
+          description: Données d'inscription invalides (email mal formé, mot de passe trop court, etc.)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: Adresse e-mail déjà utilisée
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/v1/auth/login:
+    post:
+      summary: Connexion d'un utilisateur
+      description: Vérifie les identifiants et émet un jeton JWT Bearer en cas de succès.
+      operationId: login
+      tags:
+        - Authentication
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: Connexion réussie, jeton d'accès retourné
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        '401':
+          description: Identifiants invalides
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/v1/auth/logout:
+    post:
+      summary: Déconnexion de l'utilisateur
+      description: Déconnexion côté client pour les jetons JWT stateless. Le client doit supprimer son jeton local.
+      operationId: logout
+      tags:
+        - Authentication
+      responses:
+        '200':
+          description: Déconnexion réussie
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResponse'
+
+  /api/v1/users/me:
+    get:
+      summary: Consulter le profil de l'utilisateur connecté
+      description: Retourne les détails du compte de l'utilisateur extrait du jeton JWT. Ne renvoie jamais le mot de passe ni son hachage.
+      operationId: getMe
+      tags:
+        - Users
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Profil de l'utilisateur connecté
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserResponse'
+        '401':
+          description: Non authentifié ou jeton invalide
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    patch:
+      summary: Mettre à jour le profil connecté
+      description: Modifie les informations autorisées de l'utilisateur connecté (nom d'affichage).
+      operationId: updateMe
+      tags:
+        - Users
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateUserRequest'
+      responses:
+        '200':
+          description: Compte mis à jour
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserResponse'
+        '400':
+          description: Données de mise à jour invalides
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Non authentifié
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    delete:
+      summary: Supprimer le compte connecté
+      description: Supprime définitivement le compte utilisateur et nettoie ses favoris et préférences associés.
+      operationId: deleteMe
+      tags:
+        - Users
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Compte supprimé avec succès
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResponse'
+        '401':
+          description: Non authentifié
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/v1/profiles:
+    get:
+      summary: Liste paginée et recherche de profils
+      description: Permet de consulter et filtrer les profils persistés localement (recherche textuelle, tranches d'âge, pays, tri).
+      operationId: listProfiles
+      tags:
+        - Profiles
+      parameters:
+        - name: page
+          in: query
+          required: false
+          description: Numéro de la page (commence à 1).
+          schema:
+            type: integer
+            default: 1
+            minimum: 1
+        - name: pageSize
+          in: query
+          required: false
+          description: Nombre d'éléments par page (max 100).
+          schema:
+            type: integer
+            default: 20
+            minimum: 1
+            maximum: 100
+        - name: search
+          in: query
+          required: false
+          description: Terme de recherche libre (prénom, nom, ville, pays).
+          schema:
+            type: string
+        - name: minAge
+          in: query
+          required: false
+          description: Âge minimum (inclusif).
+          schema:
+            type: integer
+            minimum: 0
+        - name: maxAge
+          in: query
+          required: false
+          description: Âge maximum (inclusif).
+          schema:
+            type: integer
+            minimum: 0
+        - name: gender
+          in: query
+          required: false
+          description: Filtrer par genre (ex. male, female).
+          schema:
+            type: string
+            enum: [male, female]
+        - name: department
+          in: query
+          required: false
+          description: Filtrer par département français (ex. Alpes-Maritimes, Paris, Gironde).
+          schema:
+            type: string
+        - name: country
+          in: query
+          required: false
+          description: Filtrer par pays exact.
+          schema:
+            type: string
+        - name: sort
+          in: query
+          required: false
+          description: Champ de tri.
+          schema:
+            type: string
+            enum: [name, age, country]
+            default: name
+        - name: order
+          in: query
+          required: false
+          description: Direction du tri.
+          schema:
+            type: string
+            enum: [asc, desc]
+            default: asc
+      responses:
+        '200':
+          description: Liste paginée de profils
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedProfilesResponse'
+        '400':
+          description: Paramètres de recherche invalides
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/v1/profiles/{id}:
+    get:
+      summary: Consulter un profil par identifiant
+      description: Retourne la fiche détaillée d'un profil par son identifiant.
+      operationId: getProfileById
+      tags:
+        - Profiles
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Identifiant unique du profil.
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Détails du profil trouvé
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Profile'
+        '404':
+          description: Profil introuvable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/v1/favorites:
+    get:
+      summary: Liste des favoris de l'utilisateur connecté
+      description: Retourne la liste paginée des profils ajoutés aux favoris par l'utilisateur connecté.
+      operationId: getFavorites
+      tags:
+        - Favorites
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 1
+            minimum: 1
+        - name: pageSize
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 20
+            minimum: 1
+            maximum: 100
+      responses:
+        '200':
+          description: Favoris de l'utilisateur
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedFavoritesResponse'
+        '401':
+          description: Non authentifié
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/v1/favorites/{profileId}:
+    post:
+      summary: Ajouter un profil aux favoris
+      description: Ajoute le profil spécifié aux favoris de l'utilisateur connecté. L'opération est idempotente.
+      operationId: addFavorite
+      tags:
+        - Favorites
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: profileId
+          in: path
+          required: true
+          description: Identifiant du profil à ajouter.
+          schema:
+            type: string
+      responses:
+        '201':
+          description: Profil ajouté ou déjà présent dans les favoris
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FavoriteItem'
+        '401':
+          description: Non authentifié
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Profil introuvable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    delete:
+      summary: Supprimer un profil des favoris
+      description: Retire le profil des favoris de l'utilisateur connecté.
+      operationId: removeFavorite
+      tags:
+        - Favorites
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: profileId
+          in: path
+          required: true
+          description: Identifiant du profil à retirer.
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Favori retiré avec succès
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResponse'
+        '401':
+          description: Non authentifié
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Profil introuvable ou absent des favoris
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/v1/preferences:
+    get:
+      summary: Consulter les préférences de l'utilisateur connecté
+      description: Retourne les préférences de recherche de l'utilisateur connecté, avec valeurs par défaut si non renseignées.
+      operationId: getPreferences
+      tags:
+        - Preferences
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Préférences utilisateur
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserPreferences'
+        '401':
+          description: Non authentifié
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    put:
+      summary: Mettre à jour les préférences de l'utilisateur connecté
+      description: Remplace ou initialise les critères de préférences de l'utilisateur connecté de façon atomique.
+      operationId: updatePreferences
+      tags:
+        - Preferences
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdatePreferencesRequest'
+      responses:
+        '200':
+          description: Préférences mises à jour
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserPreferences'
+        '400':
+          description: Paramètres de préférences invalides
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Non authentifié
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: Jeton d'accès JWT fourni dans l'en-tête Authorization au format `Bearer <token>`.
+
+  schemas:
+    HealthResponse:
+      type: object
+      required:
+        - status
+        - version
+        - database
+        - profilesCount
+        - timestamp
+      properties:
+        status:
+          type: string
+          example: healthy
+        version:
+          type: string
+          example: 1.0.0
+        database:
+          type: string
+          example: UP
+        profilesCount:
+          type: integer
+          example: 50
+        timestamp:
+          type: string
+          format: date-time
+          example: '2026-10-17T15:30:00Z'
+
+    RegisterRequest:
+      type: object
+      required:
+        - email
+        - password
+        - displayName
+      properties:
+        email:
+          type: string
+          format: email
+          example: jean.dupont@example.com
+        password:
+          type: string
+          minLength: 6
+          example: MonMotDePasseSecret123!
+        displayName:
+          type: string
+          example: Jean Dupont
+
+    LoginRequest:
+      type: object
+      required:
+        - email
+        - password
+      properties:
+        email:
+          type: string
+          format: email
+          example: jean.dupont@example.com
+        password:
+          type: string
+          example: MonMotDePasseSecret123!
+
+    AuthResponse:
+      type: object
+      required:
+        - accessToken
+        - tokenType
+        - expiresIn
+        - user
+      properties:
+        accessToken:
+          type: string
+          example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+        tokenType:
+          type: string
+          example: Bearer
+        expiresIn:
+          type: integer
+          example: 86400
+        user:
+          $ref: '#/components/schemas/UserResponse'
+
+    UserResponse:
+      type: object
+      required:
+        - id
+        - email
+        - displayName
+        - createdAt
+        - updatedAt
+      properties:
+        id:
+          type: string
+          example: 8e5f8f3b-4179-4d6b-bd85-e10db35a1a12
+        email:
+          type: string
+          format: email
+          example: jean.dupont@example.com
+        displayName:
+          type: string
+          example: Jean Dupont
+        createdAt:
+          type: string
+          format: date-time
+          example: '2026-10-17T15:00:00Z'
+        updatedAt:
+          type: string
+          format: date-time
+          example: '2026-10-17T15:00:00Z'
+
+    UpdateUserRequest:
+      type: object
+      properties:
+        displayName:
+          type: string
+          example: Jean D.
+
+    Location:
+      type: object
+      required:
+        - city
+        - country
+      properties:
+        streetNumber:
+          type: integer
+          nullable: true
+          example: 12
+          description: Numéro de voie.
+        streetName:
+          type: string
+          nullable: true
+          example: Avenue Jean Médecin
+          description: Nom de la rue / voie.
+        city:
+          type: string
+          example: Nice
+          description: Ville.
+        department:
+          type: string
+          nullable: true
+          example: Alpes-Maritimes
+          description: Département français.
+        postcode:
+          type: string
+          nullable: true
+          example: '06000'
+          description: Code postal français (5 chiffres).
+        country:
+          type: string
+          example: France
+          description: Pays de résidence.
+
+    Profile:
+      type: object
+      required:
+        - id
+        - firstName
+        - lastName
+        - age
+        - gender
+        - location
+        - country
+        - city
+        - thumbnailUrl
+        - pictureUrl
+        - source
+        - createdAt
+      properties:
+        id:
+          type: string
+          example: e350b3e6-fa99-4d0f-b4b1-8b0bb05fbc31
+        firstName:
+          type: string
+          example: Sophie
+        lastName:
+          type: string
+          example: Lambert
+        email:
+          type: string
+          format: email
+          nullable: true
+          example: sophie.lambert@example.com
+        age:
+          type: integer
+          example: 28
+        gender:
+          type: string
+          enum: [male, female]
+          example: female
+        phone:
+          type: string
+          nullable: true
+          example: 06 12 34 56 78
+          description: Numéro de téléphone au format français.
+        location:
+          $ref: '#/components/schemas/Location'
+        country:
+          type: string
+          example: France
+        city:
+          type: string
+          example: Nice
+        thumbnailUrl:
+          type: string
+          format: uri
+          example: https://randomuser.me/api/portraits/thumb/women/44.jpg
+        pictureUrl:
+          type: string
+          format: uri
+          example: https://randomuser.me/api/portraits/women/44.jpg
+        source:
+          type: string
+          example: randomuser.me
+        createdAt:
+          type: string
+          format: date-time
+          example: '2026-10-17T15:00:00Z'
+
+    PaginationMeta:
+      type: object
+      required:
+        - page
+        - pageSize
+        - totalItems
+        - totalPages
+      properties:
+        page:
+          type: integer
+          example: 1
+        pageSize:
+          type: integer
+          example: 20
+        totalItems:
+          type: integer
+          example: 50
+        totalPages:
+          type: integer
+          example: 3
+
+    PaginatedProfilesResponse:
+      type: object
+      required:
+        - items
+        - pagination
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/Profile'
+        pagination:
+          $ref: '#/components/schemas/PaginationMeta'
+
+    FavoriteItem:
+      type: object
+      required:
+        - profile
+        - favoritedAt
+      properties:
+        profile:
+          $ref: '#/components/schemas/Profile'
+        favoritedAt:
+          type: string
+          format: date-time
+          example: '2026-10-17T15:10:00Z'
+
+    PaginatedFavoritesResponse:
+      type: object
+      required:
+        - items
+        - pagination
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/FavoriteItem'
+        pagination:
+          $ref: '#/components/schemas/PaginationMeta'
+
+    UserPreferences:
+      type: object
+      required:
+        - updatedAt
+      properties:
+        minAge:
+          type: integer
+          nullable: true
+          example: 20
+        maxAge:
+          type: integer
+          nullable: true
+          example: 45
+        country:
+          type: string
+          nullable: true
+          example: France
+        updatedAt:
+          type: string
+          format: date-time
+          example: '2026-10-17T15:00:00Z'
+
+    UpdatePreferencesRequest:
+      type: object
+      properties:
+        minAge:
+          type: integer
+          minimum: 0
+          nullable: true
+          example: 22
+        maxAge:
+          type: integer
+          minimum: 0
+          nullable: true
+          example: 38
+        country:
+          type: string
+          nullable: true
+          example: France
+
+    MessageResponse:
+      type: object
+      required:
+        - message
+      properties:
+        message:
+          type: string
+          example: Opération réalisée avec succès
+
+    ErrorDetails:
+      type: object
+      required:
+        - code
+        - message
+      properties:
+        code:
+          type: string
+          example: VALIDATION_ERROR
+        message:
+          type: string
+          example: La requête contient des données invalides
+        details:
+          type: array
+          items:
+            type: string
+          example: []
+
+    ErrorResponse:
+      type: object
+      required:
+        - error
+      properties:
+        error:
+          $ref: '#/components/schemas/ErrorDetails'

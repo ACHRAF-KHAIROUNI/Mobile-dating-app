@@ -1,0 +1,18 @@
+$kind: http-request
+name: Get /users/me Without Token (Should Fail 401)
+url: "{{baseUrl}}/api/v1/users/me"
+method: GET
+auth:
+  type: noauth
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('Status code is 401', function () {
+          pm.response.to.have.status(401);
+      });
+      pm.test('Error code is UNAUTHORIZED', function () {
+          var json = pm.response.json();
+          pm.expect(json.error.code).to.eql('UNAUTHORIZED');
+      });
+    language: text/javascript
+order: 2000

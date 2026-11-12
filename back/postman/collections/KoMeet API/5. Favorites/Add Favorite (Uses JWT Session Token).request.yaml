@@ -1,0 +1,15 @@
+$kind: http-request
+url: "{{baseUrl}}/api/v1/favorites/{{testProfileId}}"
+method: POST
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('Status code is 201', function () {
+          pm.response.to.have.status(201);
+      });
+      pm.test('Returns favorite profile', function () {
+          var json = pm.response.json();
+          pm.expect(json.profile.id).to.eql(pm.variables.get('testProfileId'));
+      });
+    language: text/javascript
+order: 1000

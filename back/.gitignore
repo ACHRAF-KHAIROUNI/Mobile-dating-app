@@ -1,0 +1,35 @@
+# Gradle
+.gradle/
+build/
+bin/
+!gradle/wrapper/gradle-wrapper.jar
+!gradle/wrapper/gradle-wrapper.properties
+
+# Kotlin
+.kotlin/
+
+# IDE & OS
+.DS_Store
+Thumbs.db
+.idea/
+*.iml
+*.ipr
+*.iws
+.vscode/
+out/
+
+# SQLite & Data files
+*.db
+*.db-journal
+*.db-shm
+*.db-wal
+data/*.db
+data/*.db-*
+
+# Secrets & Local environment
+.env
+.env.*
+!.env.example
+
+# Logs
+*.log

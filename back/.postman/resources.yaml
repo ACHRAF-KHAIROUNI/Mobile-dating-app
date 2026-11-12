@@ -1,0 +1,18 @@
+workspace:
+  id: 01b620db-19c1-4540-98e8-56edf2cac9ce
+
+localResources:
+  collections:
+    - postman/collections/KoMeet API
+    - docs/postman/KoMeet.postman_collection.yaml
+    - docs/postman/KoMeet.postman_collection.json
+    - ../docs/postman/KoMeet.postman_collection.json
+  environments:
+    - postman/environments/KoMeet Local Environment.environment.yaml
+    - docs/postman/KoMeet.postman_environment.yaml
+    - docs/postman/KoMeet.postman_environment.json
+    - ../docs/postman/KoMeet.postman_environment.json
+    - ../docs/postman/KoMeet.postman_environment.yaml
+  specs:
+    - docs/openapi.yaml
+    - ../docs/openapi.yaml

@@ -1,0 +1,17 @@
+$kind: http-request
+url: "{{baseUrl}}/api/v1/profiles/non-existent-profile-id-12345"
+method: GET
+auth:
+  type: noauth
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('Status code is 404', function () {
+          pm.response.to.have.status(404);
+      });
+      pm.test('Error code is PROFILE_NOT_FOUND', function () {
+          var json = pm.response.json();
+          pm.expect(json.error.code).to.eql('PROFILE_NOT_FOUND');
+      });
+    language: text/javascript
+order: 4000

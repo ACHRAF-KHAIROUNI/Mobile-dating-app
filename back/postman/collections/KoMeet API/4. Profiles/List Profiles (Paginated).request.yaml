@@ -1,0 +1,43 @@
+$kind: http-request
+url: "{{baseUrl}}/api/v1/profiles?page=1&pageSize=10"
+method: GET
+queryParams:
+  page: "1"
+  pageSize: "10"
+auth:
+  type: noauth
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('Status code is 200', function () {
+          pm.response.to.have.status(200);
+      });
+      pm.test('Pagination structure is present and saves profile ID', function () {
+          var json = pm.response.json();
+          pm.expect(json.items).to.be.an('array');
+          pm.expect(json.pagination).to.be.an('object');
+          if (json.items.length > 0) {
+              pm.environment.set('testProfileId', json.items[0].id);
+              pm.collectionVariables.set('testProfileId', json.items[0].id);
+          }
+      });
+      pm.test('Profile includes gender and French country', function () {
+          var json = pm.response.json();
+          if (json.items.length > 0) {
+              pm.expect(json.items[0].gender).to.be.a('string');
+              pm.expect(json.items[0].country).to.eql('France');
+          }
+      });
+      pm.test('Profile includes French phone and location details', function () {
+          var json = pm.response.json();
+          if (json.items.length > 0) {
+              var p = json.items[0];
+              pm.expect(p.location).to.be.an('object');
+              pm.expect(p.location.city).to.be.a('string');
+              pm.expect(p.location.country).to.eql('France');
+              pm.expect(p.location.department).to.be.a('string');
+              pm.expect(p.phone).to.be.a('string');
+          }
+      });
+    language: text/javascript
+order: 1000

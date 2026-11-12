@@ -1,0 +1,28 @@
+$kind: http-request
+url: "{{baseUrl}}/api/v1/profiles/{{testProfileId}}"
+method: GET
+auth:
+  type: noauth
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('Status code is 200', function () {
+          pm.response.to.have.status(200);
+      });
+      pm.test('Profile id matches', function () {
+          var json = pm.response.json();
+          pm.expect(json.id).to.eql(pm.variables.get('testProfileId'));
+      });
+      pm.test('Profile includes gender', function () {
+          var json = pm.response.json();
+          pm.expect(json.gender).to.be.a('string');
+      });
+      pm.test('Profile includes French phone and location details', function () {
+          var json = pm.response.json();
+          pm.expect(json.location).to.be.an('object');
+          pm.expect(json.location.city).to.be.a('string');
+          pm.expect(json.location.country).to.eql('France');
+          pm.expect(json.phone).to.be.a('string');
+      });
+    language: text/javascript
+order: 3000

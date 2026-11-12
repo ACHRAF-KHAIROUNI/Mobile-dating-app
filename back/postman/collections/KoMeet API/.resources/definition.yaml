@@ -1,0 +1,16 @@
+$kind: collection
+description: |
+  Collection Postman moderne en YAML pour l'API KoMeet. Configure l'authentification Bearer JWT au niveau de la collection et sauvegarde automatiquement le jeton JWT (`accessToken`) dès la connexion ou l'inscription pour alimenter toutes les requêtes authentifiées.
+variables:
+  baseUrl: http://localhost:8080
+  accessToken: ""
+  testEmail: student@komeet.fr
+  testPassword: SecretPassword123!
+  testProfileId: ""
+  createdUserId: ""
+auth:
+  - id: d8238146-a0d0-48fb-8164-7f85227b8844
+    type: bearer
+    name: bearer auth
+    credentials:
+      token: "{{accessToken}}"

@@ -1,0 +1,14 @@
+$kind: http-request
+name: GET /api/v1/health
+url: "{{baseUrl}}/api/v1/health"
+method: GET
+auth:
+  type: noauth
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('Status code is 200', function () {
+          pm.response.to.have.status(200);
+      });
+    language: text/javascript
+order: 2000

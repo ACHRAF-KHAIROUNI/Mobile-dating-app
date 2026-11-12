@@ -1,0 +1,24 @@
+$kind: http-request
+name: Patch /users/me (Uses JWT Session Token)
+url: "{{baseUrl}}/api/v1/users/me"
+method: PATCH
+headers:
+  Content-Type: application/json
+body:
+  type: text
+  content: |-
+    {
+      "displayName": "Etudiant KoMeet Mis à Jour"
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('Status code is 200', function () {
+          pm.response.to.have.status(200);
+      });
+      pm.test('DisplayName updated', function () {
+          var json = pm.response.json();
+          pm.expect(json.displayName).to.eql('Etudiant KoMeet Mis à Jour');
+      });
+    language: text/javascript
+order: 3000
