@@ -1,247 +1,178 @@
-# KoMeet Android --- Application Tinder-like (Starter Étudiant)
+# 📱 KoMeet Android - Application de Rencontre Tinder-Like avec IA Gemini
 
-Bienvenue sur le projet frontend Android **KoMeet**, une application mobile de type **Tinder** permettant de découvrir des profils, de swiper (Like / Pass), de gérer ses favoris et d'ajuster ses préférences de recherche.
+[![Kotlin](https://img.shields.io/badge/Kotlin-2.1.0-purple.svg?style=flat&logo=kotlin)](https://kotlinlang.org)
+[![Android](https://img.shields.io/badge/Platform-Android%208.0%2B-green.svg?style=flat&logo=android)](https://android.com)
+[![Jetpack Compose](https://img.shields.io/badge/UI-Jetpack%20Compose-4285F4.svg?style=flat&logo=jetpackcompose)](https://developer.android.com/jetpack/compose)
+[![Material 3](https://img.shields.io/badge/Design-Material%203-7B1FA2.svg?style=flat)](https://m3.material.io)
+[![Koin](https://img.shields.io/badge/DI-Koin%204.0-brightgreen.svg)](https://insert-koin.io/)
+[![Ktor Client](https://img.shields.io/badge/Networking-Ktor%20Client%203-087CFA.svg?style=flat&logo=ktor)](https://ktor.io)
 
-Cette application est réalisée en **Kotlin**, **Jetpack Compose**, **Material 3**, **Navigation 3**, **Ktor Client 3** et **Koin 4**.
-
----
-
-## 1. Objectif du TP / Projet
-
-Le backend est déjà fourni dans `../back`. Il gère la persistance SQLite, l'authentification JWT, l'import des profils depuis Random User Generator, les favoris et les préférences.
-
-Ce starter frontend vous fournit une base saine et prête à l'emploi :
-- ✅ **Configuration Android & Gradle** (Gradle Wrapper, JDK 21, version catalog `libs.versions.toml`).
-- ✅ **Navigation 3 (Nav3)** configurée avec des clés de routes type-safe (`Screen : NavKey`).
-- ✅ **Injection de dépendances avec Koin 4** (`appModule`, `koinViewModel()`).
-- ✅ **Réseau avec Ktor Client 3** configuré avec `Auth` (Bearer JWT) et `ContentNegotiation` (Kotlinx JSON).
-- ✅ **Session utilisateur persistante** via Jetpack DataStore Preferences.
-- ✅ **Écrans de Connexion (`LoginScreen`) et d'Inscription (`RegisterScreen`)** fonctionnels.
-
-👉 **Votre mission :** Réaliser le cœur de l'application de rencontre (découverte avec gestes de swipe façon Tinder, gestion des favoris, fiche détaillée et réglage des préférences).
+Application mobile Android **KoMeet**, une expérience moderne de rencontre amoureuse de type **Tinder / Bumble**.
+Développée avec les dernières technologies Android (Jetpack Compose, Navigation 3, Material 3, Koin 4 et Ktor Client 3), elle offre une interface graphique soignée, un swiper interactif, un filtrage multi-pays et une **messagerie instantanée connectée à un Chatbot IA propulsé par Google Gemini 3.1 Flash-Lite**.
 
 ---
 
-## 2. Prérequis et Démarrage
+## 👨‍💻 Auteur & Développeur
 
-### Prérequis
-1. **JDK 21 (LTS)** configuré.
-2. **Android Studio**
-3. Un **émulateur Android** (API 26+) ou un téléphone physique en mode débogage USB.
-
-### Étape 1 : Démarrer le backend
-Dans un premier terminal, positionnez-vous dans le dossier backend et lancez-le :
-```bash
-cd ../back 
-./gradlew run
-```
-Le serveur répond sur `http://localhost:8080` (et `GET http://localhost:8080/health`).
-
-### Étape 2 : Compiler et lancer l'application Android
-
-Vous pouvez lancer l'application soit via **Android Studio**, soit directement en **ligne de commande avec Gradle**.
-
-#### Option A : Depuis Android Studio (Recommandé)
-1. Ouvrez le dossier `front` dans **Android Studio**.
-2. Attendez la synchronisation Gradle (`Sync Project with Gradle Files`).
-3. Sélectionnez votre émulateur dans la barre d'outils et cliquez sur le bouton **Run** (`Shift + F10`).
-
-#### Option B : En ligne de commande avec Gradle & ADB
-
-1. **Vérifier ou démarrer l'émulateur** :
-   ```bash
-   # Lister les émulateurs configurés
-   emulator -list-avds
-
-   # Démarrer votre émulateur (remplacer par le nom de votre AVD)
-   emulator -avd <nom_avd> &
-   ```
-   *Attendez que l'émulateur soit complètement démarré et déverrouillé.*
-
-2. **Compiler l'application** :
-   ```bash
-   ./gradlew assembleDebug
-   ```
-   *(Génère l'APK dans `app/build/outputs/apk/debug/app-debug.apk`)*
-
-3. **Compiler, installer et lancer sur l'émulateur** :
-   ```bash
-   # Installer l'application sur l'émulateur actif
-   ./gradlew installDebug
-
-   # Lancer l'écran principal de l'application
-   adb shell am start -n fr.unica.miage.komeet/.MainActivity
-   ```
-
-   *Astuce : Vous pouvez combiner la compilation, l'installation et le lancement en une seule commande :*
-   ```bash
-   ./gradlew installDebug && adb shell am start -n fr.unica.miage.komeet/.MainActivity
-   ```
-
-> 💡 **Adresse réseau de l'émulateur Android** :
-> Pour contacter le serveur backend tournant sur votre machine hôte, l'adresse spéciale **`http://10.0.2.2:8080/api/v1/`** est déjà pré-configurée dans [KtorClientFactory.kt](file:///Users/donati/Projects/KoMeet/front/app/src/main/kotlin/fr/unica/miage/komeet/data/remote/KtorClientFactory.kt) et autorisée dans `res/xml/network_security_config.xml`.
-> Si vous utilisez un téléphone physique en Wi-Fi, remplacez `10.0.2.2` par l'adresse IP locale de votre machine (ex: `192.168.1.XX`).
+- **Développeur :** **ACHRAF KHAIROUNI**
+- **Portfolio :** [achraf.khairouni.info](https://achraf.khairouni.info)
+- **Dépôt GitHub du projet :** [https://github.com/ACHRAF-KHAIROUNI/Mobile-dating-app.git](https://github.com/ACHRAF-KHAIROUNI/Mobile-dating-app.git)
 
 ---
 
-## 3. Architecture du Projet
+## 🎬 Démonstration Vidéo YouTube
 
-Le projet applique les principes de l'architecture moderne Android (Clean Architecture / MVVM) :
+Découvrez la démonstration complète de l'application en vidéo :
+
+[![KoMeet - Démo Vidéo YouTube](https://img.youtube.com/vi/x6MHFEI0s74/maxresdefault.jpg)](https://youtu.be/x6MHFEI0s74)
+
+🔗 **Lien direct :** [https://youtu.be/x6MHFEI0s74](https://youtu.be/x6MHFEI0s74)
+
+---
+
+## 🎨 Écrans et Expérience Utilisateur
+
+### 1. 🎴 Écran Découverte (`DiscoveryScreen`)
+- **Swiper de cartes de profils** :
+  - Détection tactile fluide (`pointerInput`, `detectDragGestures`) avec rotation angulaire progressive et retour élastique (*spring animation*).
+  - Badges visuels dynamiques **LIKE** vert ou **NOPE** rouge s'intensifiant selon la direction du glissement.
+- **Carte Profil Ultra-Design** :
+  - Courbure élégante à `28.dp` avec ombre portée (`10.dp`).
+  - Badge de compatibilité : `✨ 98% Match` en verre dépoli.
+  - Badge officiel Vérifié bleu (`✓`) à côté du nom et de l'âge.
+  - Badges de passions incrustés (`✈️ Voyages`, `☕ Café`, `🎵 Musique`, `📸 Photo`...).
+  - Bouton circulaire d'information pour basculer vers la vue détaillée.
+- **Barre d'action Tinder à 4 boutons** :
+  - ❌ **Pass** (58.dp, contour rouge vif `PassRed`).
+  - 🔄 **Recharger** (46.dp, actualisation de la pile).
+  - 💬 **Discuter** (56.dp, **dégradé flamboyant Tinder Flame**, icône blanche, ombre 3D).
+  - 💚 **Like** (64.dp, contour vert `LikeGreen`).
+- **Filtres de recherche intuitifs** :
+  - Rangée de genres : **✨ Tous**, **👩 Filles**, **👨 Garçons**.
+  - Rangée de pays défilante : **🌍 Tous les pays**, **🇲🇦 Maroc**, **🇫🇷 France**, **🇺🇸 USA**, **🇯🇵 Japon**, **🇸🇦 Arabie Saoudite**.
+  - Badge de région active avec bouton de suppression rapide.
+
+### 2. 💬 Écran des Discussions (`ConversationsScreen`)
+- **Carrousel "Matchs récents" (Style Stories)** :
+  - Rangée horizontale d'avatars avec bordure dégradée éclatante (`TinderFlame` à `TinderPeach`).
+  - Toucher n'importe quel profil ouvre directement le chat.
+- **Liste des conversations actives** :
+  - Affiche chaque personne avec qui vous avez conversé.
+  - Photo de profil avec pastille verte "En ligne".
+  - Nom, âge, drapeau et ville/région.
+  - Aperçu du dernier message (avec préfixe *"Vous : ..."* si vous êtes l'émetteur).
+- **Vue vide engageante** : Illustration soignée invitant à découvrir des profils.
+
+### 3. 💌 Écran de Chat IA (`ChatScreen`)
+- **Simulation de Persona par Gemini 3.1 Flash-Lite** :
+  - Le profil adopte son identité, son âge, sa ville, sa région et son pays, tout en manifestant un intérêt sincère pour planifier une rencontre.
+- **Bulles de messages expressives** :
+  - Dégradé Tinder (`#FD297B` vers `#FF5864`) pour les messages de l'utilisateur.
+  - Bulles modernes contrastées avec avatar pour les réponses du profil.
+- **Barre de suggestions rapides** :
+  - Puces cliquables (*"Coucou ! 😊"*, *"Tu viens d'où ? 🌍"*, *"Un café ? ☕"*) pour engager la conversation instantanément.
+- **Indicateur de frappe animé** : Animation pulsante douce *"✨ [Prénom] est en train d'écrire..."*.
+- **En-tête de chat** : Avatar avec bordure, pastille verte et sous-titre *"En ligne • Répond en quelques sec"*.
+- **Bouton Corbeille** : Effacement et réinitialisation de l'historique en un clic.
+
+### 4. ❤️ Écran des Favoris (`FavoritesScreen`)
+- Grille responsive à 2 colonnes avec cartes adoucies (`22.dp`).
+- Badge coeur en haut à gauche, nom, âge, drapeau et ville.
+- Bouton de suppression rapide et bouton flottant de discussion directe en dégradé.
+
+### 5. 🔍 Détail du Profil (`ProfileDetailScreen`)
+- Grande photo de profil plein écran avec dégradé d'assombrissement.
+- Nom, âge, drapeau du pays et région.
+- Badges de caractéristiques (Genre, Âge, Pays).
+- Section dédiée *"Centres d'intérêt"* avec puces stylisées.
+- Cartes d'adresses et de coordonnées.
+- Dock flottant d'actions : bouton Like / Favoris et bouton Discuter.
+
+### 6. ⚙️ Préférences & Paramètres (`PreferencesScreen`)
+- Curseurs interactifs pour ajuster la tranche d'âge de recherche.
+- Sélecteur de pays et de région cible.
+- Section Conditions Générales d'Utilisation (CGU).
+- **Mention officielle de l'auteur : ACHRAF KHAIROUNI**.
+- Déconnexion sécurisée nettoyant le jeton JWT du DataStore.
+
+---
+
+## 🏗️ Architecture Logicielle
+
+Le projet respecte rigoureusement les principes de la **Clean Architecture** et du pattern **MVVM (Model-View-ViewModel)** :
 
 ```
 front/app/src/main/kotlin/fr/unica/miage/komeet/
-├── KoMeetApplication.kt        # Classe Application démarrant Koin (startKoin)
-├── MainActivity.kt             # Point d'entrée lançant KoMeetNavHost
-│
-├── di/
-│   └── AppModule.kt            # Modules Koin : injection de DataStore, Ktor, Repositories, ViewModels
-│
-├── navigation/
-│   ├── Screen.kt               # Destinations de l'app (@Serializable sealed interface Screen : NavKey)
-│   └── KoMeetNavHost.kt        # NavDisplay Nav3 et gestion explicite du backStack
+├── KoMeetApplication.kt        # Initialisation de Koin au démarrage
+├── MainActivity.kt             # Point d'entrée de l'application
 │
 ├── data/
-│   ├── local/
-│   │   └── SessionDataStore.kt # Gestion DataStore du token JWT et du profil connecté
-│   ├── remote/
-│   │   ├── KtorClientFactory.kt# Client Ktor 3 avec plugin Auth (Bearer)
-│   │   ├── KoMeetRemoteSource.kt# Appels HTTP typés vers l'API KoMeet
-│   │   └── dto/                # Modèles de données JSON sérialisables
-│   └── repository/
-│       ├── AuthRepository.kt   # Inscription, connexion, déconnexion
-│       └── ProfileRepository.kt# Récupération profils, favoris, préférences
+│   ├── local/                  # Stockage persistant DataStore (Session, Tokens)
+│   ├── remote/                 # Client Ktor 3, DTOs (@Serializable), KoMeetRemoteSource
+│   └── repository/             # Dépôts de données (Auth, Profile, Chat)
+│
+├── di/
+│   └── AppModule.kt            # Modules d'injection de dépendances Koin 4
+│
+├── navigation/
+│   ├── KoMeetNavHost.kt        # Hôte NavDisplay avec Animated Transitions
+│   └── Screen.kt               # Destinations scellées type-safe (@Serializable sealed interface Screen : NavKey)
 │
 └── ui/
-    ├── theme/                  # Couleurs Tinder (Flamme, Corail), typographie, thèmes
-    ├── auth/                   # Écrans de Connexion & Inscription (FOURNIS)
-    │   ├── LoginScreen.kt & LoginViewModel.kt
-    │   └── RegisterScreen.kt & RegisterViewModel.kt
-    ├── discovery/              # Écran Découverte / Swipe Tinder (À COMPLÉTER)
-    │   ├── DiscoveryScreen.kt & DiscoveryViewModel.kt
-    │   └── ProfileCard.kt
-    ├── favorites/              # Écran des favoris (Jalon 3)
-    ├── profile/                # Fiche détaillée d'un profil (Jalon 4)
-    └── preferences/            # Préférences de recherche (Jalon 4)
+    ├── auth/                   # Login & Register
+    ├── chat/                   # ConversationsScreen, ChatScreen & ViewModels
+    ├── discovery/              # DiscoveryScreen, Tinder Swiper & ProfileCard
+    ├── favorites/              # FavoritesScreen & FavoriteCard
+    ├── preferences/            # PreferencesScreen
+    ├── profile/                # ProfileDetailScreen
+    └── theme/                  # Couleurs Tinder Flame, Typographies, Thème sombre/clair
 ```
 
 ---
 
-## 4. Fonctionnement de Navigation 3 (Nav3)
+## 🛠️ Installation et Exécution
 
-Google a repensé la navigation sous Jetpack Compose avec **Navigation 3** (`androidx.navigation3`). Fini les routes sous forme de chaînes de caractères arbitraires ou les contrôleurs opaques !
+### 1. Prérequis
+- **Android Studio** (Koala / Ladybug ou version récente)
+- **JDK 21 (LTS)**
+- Un **émulateur Android** (API 26 ou supérieure)
 
-1. **Chaque écran est une clé typée (`NavKey`)** dans [Screen.kt](file:///Users/donati/Projects/KoMeet/front/app/src/main/kotlin/fr/unica/miage/komeet/navigation/Screen.kt) :
-   ```kotlin
-   sealed interface Screen : NavKey {
-       @Serializable data object Login : Screen
-       @Serializable data object Register : Screen
-       @Serializable data object Discovery : Screen
-       @Serializable data object Favorites : Screen
-       @Serializable data class ProfileDetail(val profileId: String) : Screen
-       @Serializable data object Preferences : Screen
-   }
-   ```
-2. **La pile de navigation est une simple liste observable** dans [KoMeetNavHost.kt](file:///Users/donati/Projects/KoMeet/front/app/src/main/kotlin/fr/unica/miage/komeet/navigation/KoMeetNavHost.kt) :
-   ```kotlin
-   val backStack = rememberNavBackStack(initialScreen)
-
-   // Naviguer vers un écran :
-   backStack.add(Screen.Favorites)
-   backStack.add(Screen.ProfileDetail("prof-123"))
-
-   // Revenir en arrière :
-   backStack.removeAt(backStack.size - 1)
-
-   // Vider la pile (ex: après connexion réussie) :
-   backStack.clear()
-   backStack.add(Screen.Discovery)
-   ```
-3. **Le composable `NavDisplay` se charge d'afficher le bon écran** :
-   ```kotlin
-   NavDisplay(
-       backStack = backStack,
-       entryProvider = entryProvider {
-           entry<Screen.Login> { LoginScreen(...) }
-           entry<Screen.Discovery> { DiscoveryScreen(...) }
-           entry<Screen.ProfileDetail> { key -> ProfileDetailScreen(profileId = key.profileId, ...) }
-           // ...
-       }
-   )
-   ```
-
----
-
-## 5. Fonctionnement de Koin 4 & Ktor Client 3
-
-### Injection de dépendances avec Koin
-Les dépendances sont déclarées dans [AppModule.kt](file:///Users/donati/Projects/KoMeet/front/app/src/main/kotlin/fr/unica/miage/komeet/di/AppModule.kt).
-Dans vos écrans Compose, vous pouvez injecter un ViewModel en une seule ligne :
-```kotlin
-val viewModel: DiscoveryViewModel = koinViewModel()
-```
-
-### Client HTTP Ktor 3 et gestion du Bearer JWT
-Toutes les requêtes envoyées via `createKtorClient` incluent automatiquement l'en-tête `Authorization: Bearer <token>` dès qu'un utilisateur est connecté, grâce au plugin Ktor `Auth.bearer` connecté à `SessionDataStore`.
-
----
-
-## 6. Travail attendu
-
-### Exercice 1 : Affichage des profils et cartes
-- Examinez [DiscoveryViewModel.kt](file:///Users/donati/Projects/KoMeet/front/app/src/main/kotlin/fr/unica/miage/komeet/ui/discovery/DiscoveryViewModel.kt) et [ProfileRepository.kt](file:///Users/donati/Projects/KoMeet/front/app/src/main/kotlin/fr/unica/miage/komeet/data/repository/ProfileRepository.kt).
-- Les profils sont chargés via `GET /api/v1/profiles`.
-- Dans [DiscoveryScreen.kt](file:///Users/donati/Projects/KoMeet/front/app/src/main/kotlin/fr/unica/miage/komeet/ui/discovery/DiscoveryScreen.kt), observez le composable `ProfileCard`.
-- Personnalisez l'affichage de la carte pour faire apparaître la photo en grand avec Coil (`AsyncImage`), le prénom, le nom, l'âge, et la localisation (ville, département).
-
-### Exercice 2 : Gestes de Swipe Tinder (Like ❤️ / Pass ❌)
-- Les boutons d'action rapide sous la carte fonctionnent déjà (Pass, Recharger, Like).
-- **Objectif :** Rendre la carte glissable au doigt (geste de swipe façon Tinder) :
-  - Utilisez `Modifier.pointerInput` avec `detectDragGestures` ou `Modifier.draggable`.
-  - Faites pivoter légèrement la carte en fonction du déplacement horizontal (`Modifier.graphicsLayer { rotationZ = ... }`).
-  - Si la carte est glissée vers la droite au-delà d'un seuil (ex: > 300px) : déclenchez `viewModel.likeCurrentProfile()` (qui appelle `POST /api/v1/favorites/{id}`).
-  - Si la carte est glissée vers la gauche : déclenchez `viewModel.passCurrentProfile()` pour passer au suivant.
-  - Affichez un indicateur visuel translucide vert "LIKE" ou rouge "NOPE" sur la carte pendant le glissement.
-
-### Exercice 3 : Écran des Favoris
-- Ouvrez [FavoritesScreen.kt](file:///Users/donati/Projects/KoMeet/front/app/src/main/kotlin/fr/unica/miage/komeet/ui/favorites/FavoritesScreen.kt).
-- Créez un `FavoritesViewModel` déclaré dans Koin.
-- Appelez `profileRepository.getFavorites()` pour lister les profils aimés.
-- Affichez-les sous forme de grille (`LazyVerticalGrid`) avec leurs photos, prénoms et villes.
-- Permettez à l'utilisateur de retirer un favori via une icône corbeille appelant `profileRepository.removeFavorite(profileId)`.
-
-### Exercice 4 : Fiche Profil Détaillée & Préférences (Estimation : 1h30)
-1. **Fiche détaillée** ([ProfileDetailScreen.kt](file:///Users/donati/Projects/KoMeet/front/app/src/main/kotlin/fr/unica/miage/komeet/ui/profile/ProfileDetailScreen.kt)) :
-   - Lorsqu'on clique sur une carte de profil, l'identifiant du profil est passé à `Screen.ProfileDetail(profileId)`.
-   - Chargez les informations complètes du profil via `profileRepository.getProfile(profileId)`.
-   - Affichez son adresse complète (rue, ville, code postal), son numéro de téléphone français, sa photo en pleine résolution, et son email.
-2. **Préférences de recherche** ([PreferencesScreen.kt](file:///Users/donati/Projects/KoMeet/front/app/src/main/kotlin/fr/unica/miage/komeet/ui/preferences/PreferencesScreen.kt)) :
-   - Consultez les préférences actuelles avec `profileRepository.getPreferences()`.
-   - Permettez à l'utilisateur de modifier la tranche d'âge recherchée (`minAge`, `maxAge`) et le pays avec des composants Compose (`RangeSlider`, `OutlinedTextField`).
-   - Sauvegardez avec `profileRepository.updatePreferences(...)`.
-
----
-
-## 7. Tests Automatisés
-
-Pour lancer les tests unitaires du frontend :
+### 2. Démarrer le Backend au préalable
+Dans un terminal séparé, lancez le serveur backend :
 ```bash
-./gradlew test
+cd ../back
+# Windows :
+.\gradlew.bat run
+# macOS / Linux :
+./gradlew run
 ```
-Le test [LoginViewModelTest.kt](file:///Users/donati/Projects/KoMeet/front/app/src/test/kotlin/fr/unica/miage/komeet/ui/auth/LoginViewModelTest.kt) est déjà présent pour vous montrer comment tester un `ViewModel` sous coroutines avec un `FakeRepository`.
-Vous êtes encouragés à ajouter des tests pour vos nouveaux ViewModels (`FavoritesViewModel`, `DiscoveryViewModel`, etc.).
+*Le backend sera accessible depuis l'émulateur via l'alias `http://10.0.2.2:8080/api/v1/`.*
+
+### 3. Compiler et Exécuter le Frontend
+
+#### Via Android Studio (Recommandé) :
+1. Ouvrez le dossier `front` dans Android Studio.
+2. Synchronisez le projet avec les fichiers Gradle (`Sync Project with Gradle Files`).
+3. Sélectionnez votre émulateur dans la barre d'outils.
+4. Cliquez sur **Run ▶** (`Shift + F10`).
+
+#### En Ligne de Commande :
+```bash
+# Compiler l'APK de debug
+.\gradlew.bat assembleDebug
+
+# Installer l'application sur l'émulateur connecté
+.\gradlew.bat installDebug
+
+# Lancer l'application
+adb shell am start -n fr.unica.miage.komeet/.MainActivity
+```
+
+#### Exécuter les Tests Unitaires :
+```bash
+.\gradlew.bat testDebugUnitTest
+```
 
 ---
 
-## 8. Commandes Utiles
-
-| Commande | Action |
-| :--- | :--- |
-| `./gradlew assembleDebug` | Compile le projet et génère l'APK (`app/build/outputs/apk/debug/app-debug.apk`) |
-| `./gradlew installDebug` | Compile et installe l'application sur l'émulateur connecté |
-| `./gradlew installDebug && adb shell am start -n fr.unica.miage.komeet/.MainActivity` | Compile, installe et lance l'application sur l'émulateur |
-| `./gradlew uninstallAll` | Désinstalle l'application de tous les émulateurs / appareils connectés |
-| `./gradlew test` | Exécute l'ensemble des tests unitaires |
-| `./gradlew connectedAndroidTest` | Exécute les tests d'instrumentation sur l'émulateur |
-| `./gradlew lint` | Exécute l'analyse statique du code (Android Lint) |
-| `./gradlew clean` | Nettoie les caches et répertoires de build |
-
+> Conçu et développé avec passion par **[ACHRAF KHAIROUNI](https://achraf.khairouni.info)**.

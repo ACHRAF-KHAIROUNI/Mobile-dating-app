@@ -10,6 +10,7 @@ data class LocationDto(
     val streetName: String? = null,
     val city: String,
     val department: String? = null,
+    val region: String? = department,
     val postcode: String? = null,
     val country: String = "France"
 )
@@ -26,6 +27,7 @@ data class ProfileDto(
     val location: LocationDto,
     val country: String,
     val city: String,
+    val region: String? = location.region ?: location.department,
     val thumbnailUrl: String,
     val pictureUrl: String,
     val source: String,
@@ -37,6 +39,7 @@ fun Location.toDto(): LocationDto = LocationDto(
     streetName = streetName,
     city = city,
     department = department,
+    region = region ?: department,
     postcode = postcode,
     country = country
 )
@@ -52,6 +55,7 @@ fun Profile.toDto(): ProfileDto = ProfileDto(
     location = location.toDto(),
     country = country,
     city = city,
+    region = region ?: location.region ?: location.department,
     thumbnailUrl = thumbnailUrl,
     pictureUrl = pictureUrl,
     source = source,

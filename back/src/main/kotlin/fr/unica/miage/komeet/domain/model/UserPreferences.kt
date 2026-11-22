@@ -7,5 +7,6 @@ data class UserPreferences(
     val minAge: Int? = null,
     val maxAge: Int? = null,
     val country: String? = null,
+    val region: String? = null,
     val updatedAt: Instant = Instant.now()
 )

@@ -1,6 +1,9 @@
 package fr.unica.miage.komeet.data.remote
 
 import fr.unica.miage.komeet.data.remote.dto.AuthResponse
+import fr.unica.miage.komeet.data.remote.dto.ChatMessageDto
+import fr.unica.miage.komeet.data.remote.dto.ChatReplyDto
+import fr.unica.miage.komeet.data.remote.dto.ConversationDto
 import fr.unica.miage.komeet.data.remote.dto.ErrorResponse
 import fr.unica.miage.komeet.data.remote.dto.FavoriteDto
 import fr.unica.miage.komeet.data.remote.dto.LoginRequest
@@ -9,7 +12,9 @@ import fr.unica.miage.komeet.data.remote.dto.PaginatedFavoritesResponse
 import fr.unica.miage.komeet.data.remote.dto.PaginatedProfilesResponse
 import fr.unica.miage.komeet.data.remote.dto.PreferencesDto
 import fr.unica.miage.komeet.data.remote.dto.ProfileDto
+import fr.unica.miage.komeet.data.remote.dto.RegionDto
 import fr.unica.miage.komeet.data.remote.dto.RegisterRequest
+import fr.unica.miage.komeet.data.remote.dto.SendChatMessageRequest
 import fr.unica.miage.komeet.data.remote.dto.UpdatePreferencesRequest
 import fr.unica.miage.komeet.data.remote.dto.UserDto
 import io.ktor.client.HttpClient
@@ -87,7 +92,7 @@ class KoMeetRemoteSource(private val client: HttpClient) {
         return handleResponse(response)
     }
 
-    // --- PROFILES (À utiliser pour l'application Tinder par les étudiants) ---
+    // --- PROFILES ---
     suspend fun getProfiles(
         page: Int = 1,
         pageSize: Int = 20,
@@ -96,6 +101,7 @@ class KoMeetRemoteSource(private val client: HttpClient) {
         maxAge: Int? = null,
         department: String? = null,
         country: String? = null,
+        region: String? = null,
         search: String? = null,
         sort: String? = null,
         order: String? = null
@@ -108,6 +114,7 @@ class KoMeetRemoteSource(private val client: HttpClient) {
             maxAge?.let { parameter("maxAge", it) }
             department?.let { parameter("department", it) }
             country?.let { parameter("country", it) }
+            region?.let { parameter("region", it) }
             search?.let { parameter("search", it) }
             sort?.let { parameter("sort", it) }
             order?.let { parameter("order", it) }
@@ -117,6 +124,14 @@ class KoMeetRemoteSource(private val client: HttpClient) {
 
     suspend fun getProfileById(id: String): ProfileDto {
         val response = client.get("profiles/$id")
+        return handleResponse(response)
+    }
+
+    // --- REGIONS ---
+    suspend fun getRegions(country: String? = null): List<RegionDto> {
+        val response = client.get("regions") {
+            country?.let { parameter("country", it) }
+        }
         return handleResponse(response)
     }
 
@@ -149,6 +164,29 @@ class KoMeetRemoteSource(private val client: HttpClient) {
         val response = client.put("preferences") {
             setBody(request)
         }
+        return handleResponse(response)
+    }
+
+    // --- CHATBOT ---
+    suspend fun getConversations(): List<ConversationDto> {
+        val response = client.get("chat/conversations")
+        return handleResponse(response)
+    }
+
+    suspend fun getChatHistory(profileId: String): List<ChatMessageDto> {
+        val response = client.get("chat/$profileId/messages")
+        return handleResponse(response)
+    }
+
+    suspend fun sendChatMessage(profileId: String, message: String): ChatReplyDto {
+        val response = client.post("chat/$profileId/messages") {
+            setBody(SendChatMessageRequest(message = message))
+        }
+        return handleResponse(response)
+    }
+
+    suspend fun clearChatHistory(profileId: String): MessageResponse {
+        val response = client.delete("chat/$profileId/messages")
         return handleResponse(response)
     }
 }

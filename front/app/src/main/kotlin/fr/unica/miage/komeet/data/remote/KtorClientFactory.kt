@@ -3,6 +3,7 @@ package fr.unica.miage.komeet.data.remote
 import fr.unica.miage.komeet.data.local.SessionDataStore
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.okhttp.OkHttp
+import io.ktor.client.plugins.HttpTimeout
 import io.ktor.client.plugins.auth.Auth
 import io.ktor.client.plugins.auth.providers.BearerTokens
 import io.ktor.client.plugins.auth.providers.bearer
@@ -18,6 +19,18 @@ import kotlinx.serialization.json.Json
 
 fun createKtorClient(sessionDataStore: SessionDataStore): HttpClient {
     return HttpClient(OkHttp) {
+        engine {
+            config {
+                connectTimeout(30, java.util.concurrent.TimeUnit.SECONDS)
+                readTimeout(60, java.util.concurrent.TimeUnit.SECONDS)
+                writeTimeout(60, java.util.concurrent.TimeUnit.SECONDS)
+            }
+        }
+        install(HttpTimeout) {
+            requestTimeoutMillis = 60000L
+            connectTimeoutMillis = 30000L
+            socketTimeoutMillis = 60000L
+        }
         defaultRequest {
             url("http://10.0.2.2:8080/api/v1/")
             contentType(ContentType.Application.Json)

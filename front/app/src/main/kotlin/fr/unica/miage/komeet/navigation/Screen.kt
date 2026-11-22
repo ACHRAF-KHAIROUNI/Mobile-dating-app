@@ -32,4 +32,12 @@ sealed interface Screen : NavKey {
     /** Écran des préférences utilisateur et de recherche (à réaliser par les étudiants) */
     @Serializable
     data object Preferences : Screen
+
+    /** Écran de messagerie / Chatbot avec un profil (simulé par IA Gemini) */
+    @Serializable
+    data class Chat(val profileId: String) : Screen
+
+    /** Écran des discussions / Liste des conversations */
+    @Serializable
+    data object Conversations : Screen
 }

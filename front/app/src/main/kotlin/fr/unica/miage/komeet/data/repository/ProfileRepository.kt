@@ -5,12 +5,9 @@ import fr.unica.miage.komeet.data.remote.dto.PaginatedFavoritesResponse
 import fr.unica.miage.komeet.data.remote.dto.PaginatedProfilesResponse
 import fr.unica.miage.komeet.data.remote.dto.PreferencesDto
 import fr.unica.miage.komeet.data.remote.dto.ProfileDto
+import fr.unica.miage.komeet.data.remote.dto.RegionDto
 import fr.unica.miage.komeet.data.remote.dto.UpdatePreferencesRequest
 
-/**
- * Repository gérant les profils, les favoris (Like/Pass façon Tinder) et les préférences.
- * Ce dépôt est pré-câblé pour faciliter la réalisation du TP par les étudiants.
- */
 interface ProfileRepository {
     suspend fun getProfiles(
         page: Int = 1,
@@ -20,22 +17,19 @@ interface ProfileRepository {
         maxAge: Int? = null,
         department: String? = null,
         country: String? = null,
+        region: String? = null,
         search: String? = null,
         sort: String? = null,
         order: String? = null
     ): Result<PaginatedProfilesResponse>
 
     suspend fun getProfile(id: String): Result<ProfileDto>
-
+    suspend fun getRegions(country: String? = null): Result<List<RegionDto>>
     suspend fun getFavorites(page: Int = 1, pageSize: Int = 20): Result<PaginatedFavoritesResponse>
-
     suspend fun likeProfile(profileId: String): Result<Unit>
-
     suspend fun removeFavorite(profileId: String): Result<Unit>
-
     suspend fun getPreferences(): Result<PreferencesDto>
-
-    suspend fun updatePreferences(minAge: Int, maxAge: Int, country: String): Result<PreferencesDto>
+    suspend fun updatePreferences(minAge: Int, maxAge: Int, country: String, region: String? = null): Result<PreferencesDto>
 }
 
 class ProfileRepositoryImpl(
@@ -50,6 +44,7 @@ class ProfileRepositoryImpl(
         maxAge: Int?,
         department: String?,
         country: String?,
+        region: String?,
         search: String?,
         sort: String?,
         order: String?
@@ -63,6 +58,7 @@ class ProfileRepositoryImpl(
                 maxAge = maxAge,
                 department = department,
                 country = country,
+                region = region,
                 search = search,
                 sort = sort,
                 order = order
@@ -77,6 +73,15 @@ class ProfileRepositoryImpl(
         return try {
             val profile = remoteSource.getProfileById(id)
             Result.success(profile)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    override suspend fun getRegions(country: String?): Result<List<RegionDto>> {
+        return try {
+            val regions = remoteSource.getRegions(country)
+            Result.success(regions)
         } catch (e: Exception) {
             Result.failure(e)
         }
@@ -121,11 +126,17 @@ class ProfileRepositoryImpl(
     override suspend fun updatePreferences(
         minAge: Int,
         maxAge: Int,
-        country: String
+        country: String,
+        region: String?
     ): Result<PreferencesDto> {
         return try {
             val updated = remoteSource.updatePreferences(
-                UpdatePreferencesRequest(minAge, maxAge, country)
+                UpdatePreferencesRequest(
+                    minAge = minAge,
+                    maxAge = maxAge,
+                    country = country,
+                    region = region
+                )
             )
             Result.success(updated)
         } catch (e: Exception) {

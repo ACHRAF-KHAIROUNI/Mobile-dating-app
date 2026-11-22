@@ -53,12 +53,13 @@ class AuthRepositoryImpl(
 
     override suspend fun logout(): Result<Unit> {
         return try {
+            // Effacer la session locale immédiatement pour garantir la déconnexion locale
+            sessionDataStore.clearSession()
             try {
                 remoteSource.logout()
             } catch (_: Exception) {
-                // Logout endpoint call is best-effort for stateless JWT
+                // L'appel au serveur est en best-effort pour un JWT sans état
             }
-            sessionDataStore.clearSession()
             Result.success(Unit)
         } catch (e: Exception) {
             Result.failure(e)

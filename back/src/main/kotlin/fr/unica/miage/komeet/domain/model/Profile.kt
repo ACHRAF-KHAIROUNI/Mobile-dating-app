@@ -8,7 +8,8 @@ data class Location(
     val city: String,
     val department: String? = null,
     val postcode: String? = null,
-    val country: String = "France"
+    val country: String = "France",
+    val region: String? = department
 )
 
 data class Profile(
@@ -28,4 +29,5 @@ data class Profile(
 ) {
     val country: String get() = location.country
     val city: String get() = location.city
+    val region: String? get() = location.region ?: location.department
 }

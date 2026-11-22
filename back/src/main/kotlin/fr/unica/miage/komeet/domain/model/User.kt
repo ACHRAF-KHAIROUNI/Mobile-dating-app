@@ -8,5 +8,6 @@ data class User(
     val passwordHash: String,
     val displayName: String,
     val createdAt: Instant,
-    val updatedAt: Instant
+    val updatedAt: Instant,
+    val region: String? = null
 )

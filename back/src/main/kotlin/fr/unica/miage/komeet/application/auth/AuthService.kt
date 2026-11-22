@@ -25,6 +25,7 @@ class AuthService(
         val email = request.email.trim().lowercase()
         val displayName = request.displayName.trim()
         val password = request.password
+        val region = request.region?.trim()?.ifBlank { null } ?: "Casablanca-Settat"
 
         val validationErrors = mutableListOf<String>()
         if (email.isBlank()) {
@@ -55,6 +56,7 @@ class AuthService(
             email = email,
             passwordHash = passwordHasher.hash(password),
             displayName = displayName,
+            region = region,
             createdAt = now,
             updatedAt = now
         )

@@ -17,7 +17,9 @@ data class AppConfig(
     val randomUserImportCount: Int,
     val randomUserSeed: String,
     val autoImportOnStartup: Boolean,
-    val corsAllowedHosts: List<String>
+    val corsAllowedHosts: List<String>,
+    val geminiApiKey: String = "",
+    val geminiModel: String = "gemini-3.1-flash-lite"
 ) {
     companion object {
         private val logger = LoggerFactory.getLogger(AppConfig::class.java)
@@ -53,6 +55,8 @@ data class AppConfig(
             val autoImportOnStartup = get("AUTO_IMPORT_ON_STARTUP", "true").toBoolean()
             val corsRaw = get("CORS_ALLOWED_HOSTS", "*")
             val corsAllowedHosts = corsRaw.split(",").map { it.trim() }.filter { it.isNotEmpty() }
+            val geminiApiKey = get("GEMINI_API_KEY", "")
+            val geminiModel = get("GEMINI_MODEL", "gemini-3.1-flash-lite")
 
             // Ensure parent directory for database exists if not memory
             if (databasePath != ":memory:") {
@@ -73,7 +77,9 @@ data class AppConfig(
                 randomUserImportCount = randomUserImportCount,
                 randomUserSeed = randomUserSeed,
                 autoImportOnStartup = autoImportOnStartup,
-                corsAllowedHosts = corsAllowedHosts
+                corsAllowedHosts = corsAllowedHosts,
+                geminiApiKey = geminiApiKey,
+                geminiModel = geminiModel
             )
         }
     }

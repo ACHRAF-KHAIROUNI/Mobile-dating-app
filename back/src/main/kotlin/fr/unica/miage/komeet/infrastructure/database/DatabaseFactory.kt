@@ -11,8 +11,17 @@ object Users : Table("UserEntity") {
     val email = varchar("email", 320).uniqueIndex();
     val passwordHash = varchar("passwordHash", 100);
     val displayName = varchar("displayName", 120);
+    val region = varchar("region", 120).nullable();
     val createdAt = varchar("createdAt", 40);
     val updatedAt = varchar("updatedAt", 40);
+    override val primaryKey = PrimaryKey(id)
+}
+
+object Regions : Table("RegionEntity") {
+    val id = varchar("id", 64);
+    val name = varchar("name", 120);
+    val country = varchar("country", 120);
+    val code = varchar("code", 32).nullable();
     override val primaryKey = PrimaryKey(id)
 }
 
@@ -28,6 +37,7 @@ object Profiles : Table("ProfileEntity") {
     val streetName = varchar("streetName", 180).nullable();
     val city = varchar("city", 120);
     val department = varchar("department", 120).nullable();
+    val region = varchar("region", 120).nullable();
     val postcode = varchar("postcode", 32).nullable();
     val country = varchar("country", 120);
     val thumbnailUrl = text("thumbnailUrl");
@@ -50,6 +60,7 @@ object Preferences : Table("UserPreferencesEntity") {
     val minAge = integer("minAge").nullable();
     val maxAge = integer("maxAge").nullable();
     val country = varchar("country", 120).nullable();
+    val region = varchar("region", 120).nullable();
     val updatedAt = varchar("updatedAt", 40);
     override val primaryKey = PrimaryKey(userId)
 }
@@ -62,19 +73,37 @@ object ImportMetadata : Table("ImportMetadataEntity") {
     override val primaryKey = PrimaryKey(id)
 }
 
+object ChatMessages : Table("ChatMessageEntity") {
+    val id = varchar("id", 64)
+    val userId = varchar("userId", 64).references(Users.id)
+    val profileId = varchar("profileId", 128).references(Profiles.id)
+    val sender = varchar("sender", 16)
+    val content = text("content")
+    val createdAt = varchar("createdAt", 40)
+    override val primaryKey = PrimaryKey(id)
+}
+
 object DatabaseFactory {
     fun connect(path: String): Database {
         if (path != ":memory:") File(path).absoluteFile.parentFile?.mkdirs();
         val actualPath = if (path == ":memory:") File.createTempFile("komeet-exposed-", ".db").absolutePath else path;
         val url = "jdbc:sqlite:$actualPath";
-        val db = Database.connect(url, driver = "org.sqlite.JDBC"); transaction(db) {
+        val db = Database.connect(url, driver = "org.sqlite.JDBC");
+        transaction(db) {
             SchemaUtils.create(
                 Users,
+                Regions,
                 Profiles,
                 Favorites,
                 Preferences,
-                ImportMetadata
+                ImportMetadata,
+                ChatMessages
             )
-        }; return db
+            // Idempotent column additions for existing databases
+            try { exec("ALTER TABLE ProfileEntity ADD COLUMN region VARCHAR(120);") } catch (_: Exception) {}
+            try { exec("ALTER TABLE UserEntity ADD COLUMN region VARCHAR(120);") } catch (_: Exception) {}
+            try { exec("ALTER TABLE UserPreferencesEntity ADD COLUMN region VARCHAR(120);") } catch (_: Exception) {}
+        };
+        return db
     }
 }

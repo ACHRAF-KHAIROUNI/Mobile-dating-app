@@ -26,6 +26,7 @@ class PreferencesService(
                 minAge = DEFAULT_MIN_AGE,
                 maxAge = DEFAULT_MAX_AGE,
                 country = null,
+                region = null,
                 updatedAt = Instant.EPOCH.toString()
             )
         }
@@ -53,6 +54,7 @@ class PreferencesService(
             minAge = request.minAge,
             maxAge = request.maxAge,
             country = request.country?.trim()?.ifBlank { null },
+            region = request.region?.trim()?.ifBlank { null },
             updatedAt = Instant.now()
         )
 

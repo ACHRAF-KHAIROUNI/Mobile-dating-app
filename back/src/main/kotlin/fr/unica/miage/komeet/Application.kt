@@ -1,19 +1,19 @@
 package fr.unica.miage.komeet
 
 import fr.unica.miage.komeet.application.auth.AuthService
+import fr.unica.miage.komeet.application.chat.ChatService
 import fr.unica.miage.komeet.application.favorites.FavoriteService
 import fr.unica.miage.komeet.application.preferences.PreferencesService
 import fr.unica.miage.komeet.application.profiles.ProfileService
 import fr.unica.miage.komeet.application.users.UserService
 import fr.unica.miage.komeet.config.AppConfig
+import fr.unica.miage.komeet.domain.repository.RegionRepository
 import fr.unica.miage.komeet.infrastructure.database.DatabaseFactory
+import fr.unica.miage.komeet.infrastructure.database.InitialDataSeeder
+import fr.unica.miage.komeet.infrastructure.gemini.GeminiChatClient
 import fr.unica.miage.komeet.infrastructure.randomuser.KtorRandomUserClient
 import fr.unica.miage.komeet.infrastructure.randomuser.RandomUserDataSource
-import fr.unica.miage.komeet.infrastructure.repository.ExposedFavoriteRepository
-import fr.unica.miage.komeet.infrastructure.repository.ExposedImportMetadataRepository
-import fr.unica.miage.komeet.infrastructure.repository.ExposedPreferencesRepository
-import fr.unica.miage.komeet.infrastructure.repository.ExposedProfileRepository
-import fr.unica.miage.komeet.infrastructure.repository.ExposedUserRepository
+import fr.unica.miage.komeet.infrastructure.repository.*
 import fr.unica.miage.komeet.infrastructure.security.BCryptPasswordHasher
 import fr.unica.miage.komeet.infrastructure.security.JwtService
 import fr.unica.miage.komeet.plugins.configureRouting
@@ -36,7 +36,9 @@ fun Application.komeetModule(
     profileService: ProfileService,
     favoriteService: FavoriteService,
     preferencesService: PreferencesService,
-    jwtService: JwtService
+    regionRepository: RegionRepository,
+    jwtService: JwtService,
+    chatService: ChatService? = null
 ) {
     install(CallLogging) {
         level = Level.INFO
@@ -50,7 +52,9 @@ fun Application.komeetModule(
         userService = userService,
         profileService = profileService,
         favoriteService = favoriteService,
-        preferencesService = preferencesService
+        preferencesService = preferencesService,
+        regionRepository = regionRepository,
+        chatService = chatService
     )
 }
 
@@ -69,6 +73,7 @@ fun main() {
     val favoriteRepository = ExposedFavoriteRepository(database, profileRepository)
     val preferencesRepository = ExposedPreferencesRepository(database)
     val importMetadataRepository = ExposedImportMetadataRepository(database)
+    val regionRepository = ExposedRegionRepository(database)
 
     val passwordHasher = BCryptPasswordHasher()
     val jwtService = JwtService(config)
@@ -79,6 +84,22 @@ fun main() {
     val profileService = ProfileService(profileRepository, randomUserDataSource, importMetadataRepository)
     val favoriteService = FavoriteService(favoriteRepository, profileRepository)
     val preferencesService = PreferencesService(preferencesRepository)
+
+    val chatRepository = ExposedChatRepository(database)
+    val geminiClient = GeminiChatClient(
+        apiKey = config.geminiApiKey,
+        model = config.geminiModel
+    )
+    val chatService = ChatService(chatRepository, profileRepository, userRepository, geminiClient)
+
+    // Seed regions, international profiles (Maroc, USA, Japon, Arabie Saoudite) and demo users
+    InitialDataSeeder.seed(
+        db = database,
+        regionRepository = regionRepository,
+        profileRepository = profileRepository,
+        userRepository = userRepository,
+        passwordHasher = passwordHasher
+    )
 
     // Initial profiles import if database is empty and autoImport is enabled
     if (config.autoImportOnStartup && profileService.count() == 0L) {
@@ -101,7 +122,9 @@ fun main() {
             profileService = profileService,
             favoriteService = favoriteService,
             preferencesService = preferencesService,
-            jwtService = jwtService
+            regionRepository = regionRepository,
+            jwtService = jwtService,
+            chatService = chatService
         )
     }.start(wait = true)
 }

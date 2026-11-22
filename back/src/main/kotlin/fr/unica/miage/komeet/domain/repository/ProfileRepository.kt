@@ -9,6 +9,7 @@ data class ProfileSearchParams(
     val gender: String? = null,
     val department: String? = null,
     val country: String? = null,
+    val region: String? = null,
     val sort: String? = "name",
     val order: String? = "asc",
     val page: Int = 1,

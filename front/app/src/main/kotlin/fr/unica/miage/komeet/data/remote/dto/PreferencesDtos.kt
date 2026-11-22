@@ -7,6 +7,7 @@ data class PreferencesDto(
     val minAge: Int? = null,
     val maxAge: Int? = null,
     val country: String? = null,
+    val region: String? = null,
     val updatedAt: String = "",
     val userId: String? = null
 )
@@ -15,5 +16,6 @@ data class PreferencesDto(
 data class UpdatePreferencesRequest(
     val minAge: Int? = null,
     val maxAge: Int? = null,
-    val country: String? = null
+    val country: String? = null,
+    val region: String? = null
 )

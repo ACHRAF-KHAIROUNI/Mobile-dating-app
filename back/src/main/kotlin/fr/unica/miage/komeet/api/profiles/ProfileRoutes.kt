@@ -18,6 +18,7 @@ fun Route.profileRoutes(profileService: ProfileService) {
             val maxAge = call.request.queryParameters["maxAge"]?.toIntOrNull()
             val gender = call.request.queryParameters["gender"]
             val department = call.request.queryParameters["department"]
+            val region = call.request.queryParameters["region"]
             val country = call.request.queryParameters["country"]
             val sort = call.request.queryParameters["sort"] ?: "name"
             val order = call.request.queryParameters["order"] ?: "asc"
@@ -29,6 +30,7 @@ fun Route.profileRoutes(profileService: ProfileService) {
                 gender = gender,
                 department = department,
                 country = country,
+                region = region,
                 sort = sort,
                 order = order,
                 page = page,

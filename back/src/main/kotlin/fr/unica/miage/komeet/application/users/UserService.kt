@@ -30,8 +30,11 @@ class UserService(
             throw ValidationException("Le nom d'affichage ne peut pas être vide")
         }
 
+        val newRegion = request.region?.trim() ?: existing.region
+
         val updated = existing.copy(
             displayName = newDisplayName,
+            region = newRegion,
             updatedAt = Instant.now()
         )
 

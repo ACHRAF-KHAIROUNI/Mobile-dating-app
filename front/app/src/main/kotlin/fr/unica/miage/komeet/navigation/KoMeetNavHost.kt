@@ -9,11 +9,18 @@ import fr.unica.miage.komeet.ui.auth.LoginScreen
 import fr.unica.miage.komeet.ui.auth.LoginViewModel
 import fr.unica.miage.komeet.ui.auth.RegisterScreen
 import fr.unica.miage.komeet.ui.auth.RegisterViewModel
+import fr.unica.miage.komeet.ui.chat.ChatScreen
+import fr.unica.miage.komeet.ui.chat.ChatViewModel
+import fr.unica.miage.komeet.ui.chat.ConversationsScreen
+import fr.unica.miage.komeet.ui.chat.ConversationsViewModel
 import fr.unica.miage.komeet.ui.discovery.DiscoveryScreen
 import fr.unica.miage.komeet.ui.discovery.DiscoveryViewModel
 import fr.unica.miage.komeet.ui.favorites.FavoritesScreen
+import fr.unica.miage.komeet.ui.favorites.FavoritesViewModel
 import fr.unica.miage.komeet.ui.preferences.PreferencesScreen
+import fr.unica.miage.komeet.ui.preferences.PreferencesViewModel
 import fr.unica.miage.komeet.ui.profile.ProfileDetailScreen
+import fr.unica.miage.komeet.ui.profile.ProfileDetailViewModel
 import org.koin.androidx.compose.koinViewModel
 
 /**
@@ -63,45 +70,94 @@ fun KoMeetNavHost(
                 )
             }
 
-            // Écran Découverte / Tinder swiper (à compléter par les étudiants)
+            // Écran Découverte / Tinder swiper
             entry<Screen.Discovery> {
                 val viewModel: DiscoveryViewModel = koinViewModel()
                 DiscoveryScreen(
                     viewModel = viewModel,
                     onNavigateToFavorites = { backStack.add(Screen.Favorites) },
+                    onNavigateToConversations = { backStack.add(Screen.Conversations) },
                     onNavigateToPreferences = { backStack.add(Screen.Preferences) },
                     onNavigateToDetail = { profileId -> backStack.add(Screen.ProfileDetail(profileId)) },
+                    onNavigateToChat = { profileId -> backStack.add(Screen.Chat(profileId)) },
                     onLogout = {
-                        backStack.clear()
+                        while (backStack.isNotEmpty()) {
+                            backStack.removeAt(backStack.size - 1)
+                        }
                         backStack.add(Screen.Login)
                     }
                 )
             }
 
-            // Écran Favoris (Jalon 3 étudiant)
+            // Écran Favoris (Jalon 3)
             entry<Screen.Favorites> {
+                val viewModel: FavoritesViewModel = koinViewModel()
                 FavoritesScreen(
+                    viewModel = viewModel,
+                    onNavigateToDetail = { profileId -> backStack.add(Screen.ProfileDetail(profileId)) },
+                    onNavigateToChat = { profileId -> backStack.add(Screen.Chat(profileId)) },
+                    onNavigateToConversations = { backStack.add(Screen.Conversations) },
                     onBack = {
                         if (backStack.size > 1) backStack.removeAt(backStack.size - 1)
                     }
                 )
             }
 
-            // Écran Détail du Profil (Jalon 4 étudiant)
+            // Écran Détail du Profil (Jalon 4)
             entry<Screen.ProfileDetail> { key ->
+                val viewModel: ProfileDetailViewModel = koinViewModel()
                 ProfileDetailScreen(
                     profileId = key.profileId,
+                    viewModel = viewModel,
+                    onNavigateToChat = { profileId -> backStack.add(Screen.Chat(profileId)) },
                     onBack = {
                         if (backStack.size > 1) backStack.removeAt(backStack.size - 1)
                     }
                 )
             }
 
-            // Écran Préférences de recherche (Jalon 4 étudiant)
-            entry<Screen.Preferences> {
-                PreferencesScreen(
+            // Écran Liste des Discussions / Conversations
+            entry<Screen.Conversations> {
+                val viewModel: ConversationsViewModel = koinViewModel()
+                ConversationsScreen(
+                    viewModel = viewModel,
+                    onNavigateToChat = { profileId -> backStack.add(Screen.Chat(profileId)) },
+                    onNavigateToDiscovery = {
+                        while (backStack.size > 1) {
+                            backStack.removeAt(backStack.size - 1)
+                        }
+                    },
                     onBack = {
                         if (backStack.size > 1) backStack.removeAt(backStack.size - 1)
+                    }
+                )
+            }
+
+            // Écran Chat IA Persona (Gemini Chatbot)
+            entry<Screen.Chat> { key ->
+                val viewModel: ChatViewModel = koinViewModel()
+                ChatScreen(
+                    profileId = key.profileId,
+                    viewModel = viewModel,
+                    onBack = {
+                        if (backStack.size > 1) backStack.removeAt(backStack.size - 1)
+                    }
+                )
+            }
+
+            // Écran Préférences de recherche (Jalon 4)
+            entry<Screen.Preferences> {
+                val viewModel: PreferencesViewModel = koinViewModel()
+                PreferencesScreen(
+                    viewModel = viewModel,
+                    onBack = {
+                        if (backStack.size > 1) backStack.removeAt(backStack.size - 1)
+                    },
+                    onLogout = {
+                        while (backStack.isNotEmpty()) {
+                            backStack.removeAt(backStack.size - 1)
+                        }
+                        backStack.add(Screen.Login)
                     }
                 )
             }

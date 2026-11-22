@@ -1,17 +1,21 @@
 package fr.unica.miage.komeet.plugins
 
 import fr.unica.miage.komeet.api.auth.authRoutes
+import fr.unica.miage.komeet.api.chat.chatRoutes
 import fr.unica.miage.komeet.api.favorites.favoriteRoutes
 import fr.unica.miage.komeet.api.health.healthRoutes
 import fr.unica.miage.komeet.api.preferences.preferencesRoutes
 import fr.unica.miage.komeet.api.profiles.profileRoutes
+import fr.unica.miage.komeet.api.regions.regionRoutes
 import fr.unica.miage.komeet.api.users.userRoutes
 import fr.unica.miage.komeet.application.auth.AuthService
+import fr.unica.miage.komeet.application.chat.ChatService
 import fr.unica.miage.komeet.application.favorites.FavoriteService
 import fr.unica.miage.komeet.application.preferences.PreferencesService
 import fr.unica.miage.komeet.application.profiles.ProfileService
 import fr.unica.miage.komeet.application.users.UserService
 import fr.unica.miage.komeet.config.AppConfig
+import fr.unica.miage.komeet.domain.repository.RegionRepository
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
@@ -30,7 +34,9 @@ fun Application.configureRouting(
     userService: UserService,
     profileService: ProfileService,
     favoriteService: FavoriteService,
-    preferencesService: PreferencesService
+    preferencesService: PreferencesService,
+    regionRepository: RegionRepository,
+    chatService: ChatService? = null
 ) {
     install(CORS) {
         allowMethod(HttpMethod.Options)
@@ -83,7 +89,9 @@ fun Application.configureRouting(
         authRoutes(authService)
         userRoutes(userService)
         profileRoutes(profileService)
+        regionRoutes(regionRepository)
         favoriteRoutes(favoriteService)
         preferencesRoutes(preferencesService)
+        chatService?.let { chatRoutes(it) }
     }
 }

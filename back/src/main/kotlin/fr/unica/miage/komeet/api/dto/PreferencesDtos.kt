@@ -8,6 +8,7 @@ data class UserPreferencesDto(
     val minAge: Int? = null,
     val maxAge: Int? = null,
     val country: String? = null,
+    val region: String? = null,
     val updatedAt: String
 )
 
@@ -15,12 +16,14 @@ data class UserPreferencesDto(
 data class UpdatePreferencesRequest(
     val minAge: Int? = null,
     val maxAge: Int? = null,
-    val country: String? = null
+    val country: String? = null,
+    val region: String? = null
 )
 
 fun UserPreferences.toDto(): UserPreferencesDto = UserPreferencesDto(
     minAge = minAge,
     maxAge = maxAge,
     country = country,
+    region = region,
     updatedAt = updatedAt.toString()
 )

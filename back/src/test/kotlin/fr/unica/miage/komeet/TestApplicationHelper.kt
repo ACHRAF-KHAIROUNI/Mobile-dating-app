@@ -15,6 +15,7 @@ import fr.unica.miage.komeet.infrastructure.repository.ExposedFavoriteRepository
 import fr.unica.miage.komeet.infrastructure.repository.ExposedImportMetadataRepository
 import fr.unica.miage.komeet.infrastructure.repository.ExposedPreferencesRepository
 import fr.unica.miage.komeet.infrastructure.repository.ExposedProfileRepository
+import fr.unica.miage.komeet.infrastructure.repository.ExposedRegionRepository
 import fr.unica.miage.komeet.infrastructure.repository.ExposedUserRepository
 import fr.unica.miage.komeet.infrastructure.security.BCryptPasswordHasher
 import fr.unica.miage.komeet.infrastructure.security.JwtService
@@ -24,7 +25,6 @@ import io.ktor.serialization.kotlinx.json.json
 import io.ktor.server.testing.ApplicationTestBuilder
 import kotlinx.serialization.json.Json
 import java.time.Instant
-import java.util.Properties
 
 class MockRandomUserDataSource(
     var mockProfiles: List<Profile> = emptyList(),
@@ -46,6 +46,7 @@ class TestContext(
     val favoriteRepository: ExposedFavoriteRepository,
     val preferencesRepository: ExposedPreferencesRepository,
     val importMetadataRepository: ExposedImportMetadataRepository,
+    val regionRepository: ExposedRegionRepository,
     val passwordHasher: BCryptPasswordHasher,
     val jwtService: JwtService,
     val mockRandomUserDataSource: MockRandomUserDataSource,
@@ -80,6 +81,7 @@ class TestContext(
             val favoriteRepository = ExposedFavoriteRepository(database, profileRepository)
             val preferencesRepository = ExposedPreferencesRepository(database)
             val importMetadataRepository = ExposedImportMetadataRepository(database)
+            val regionRepository = ExposedRegionRepository(database)
 
             val passwordHasher = BCryptPasswordHasher(cost = 4) // Fast for tests
             val jwtService = JwtService(config)
@@ -99,6 +101,7 @@ class TestContext(
                 favoriteRepository = favoriteRepository,
                 preferencesRepository = preferencesRepository,
                 importMetadataRepository = importMetadataRepository,
+                regionRepository = regionRepository,
                 passwordHasher = passwordHasher,
                 jwtService = jwtService,
                 mockRandomUserDataSource = mockRandomUserDataSource,
@@ -121,6 +124,7 @@ fun ApplicationTestBuilder.setupTestApp(context: TestContext): HttpClient {
             profileService = context.profileService,
             favoriteService = context.favoriteService,
             preferencesService = context.preferencesService,
+            regionRepository = context.regionRepository,
             jwtService = context.jwtService
         )
     }
@@ -147,7 +151,8 @@ fun sampleProfile(
     city: String = "Nice",
     department: String? = "Alpes-Maritimes",
     postcode: String? = "06000",
-    country: String = "France"
+    country: String = "France",
+    region: String? = department
 ): Profile = Profile(
     id = id,
     firstName = firstName,
@@ -162,7 +167,8 @@ fun sampleProfile(
         city = city,
         department = department,
         postcode = postcode,
-        country = country
+        country = country,
+        region = region
     ),
     thumbnailUrl = "https://example.com/thumb.jpg",
     pictureUrl = "https://example.com/picture.jpg",
